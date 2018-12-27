@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>SPA input form sample | Vue.js samples</title>
+
+<style>
+form table th {
+	background-color: lightcyan;
+	border-width: 0;
+	border-bottom: 1px solid whitesmoke;
+}
+form table td {
+	border-width: 0;
+	border-bottom: 1px solid whitesmoke;
+}
+
+label.required::after {
+	content: ' *';
+	color: red;
+}
+
+.has-error {
+	border: 1px solid red;
+	background-color: pink;
+}
+
+p.error {
+	margin: 0;
+	color: red;
+}}
+</style>
+</head>
+<body>
+<h1>SPA form sample</h1>
+
+<div id="app">
+	<div v-if="pageStatus === 'input'">
+		<h2>Input</h2>
+		<form @submit.prevent="goToConfirm" novalidate="true">
+			<table>
+				<tr>
+					<th><label for="name" class="required">Account name</label></th>
+					<td>
+						<input id="name" name="name" type="text" v-model="formData.name" v-validate="'required|alpha_num|min:4|max:16'" data-vv-as="Account name" :class="{ 'has-error': errors.has('name') }" />
+						<p class="error">{{ errors.first('name') }}</p>
+					</td>
+				</tr>
+				<tr>
+					<th><label for="password" class="required">Password</label></th>
+					<td>
+						<input id="password" name="password" type="password" v-model="formData.password" v-validate="'required|min:8'" data-vv-as="Password" :class="{ 'has-error': errors.has('password') }" />
+						<input name="password_confirmation" type="password" v-model="formData.passwordConfirmation" v-validate="'required|confirmed:password'" data-vv-as="Re-type pssword" :class="{ 'has-error': errors.has('password') }" placeholder="Re-type password" />
+						<p class="error">{{ errors.first('password') }}</p>
+						<p class="error">{{ errors.first('password_confirmation') }}</p>
+					</td>
+				</tr>
+				<tr>
+					<th><label class="required">Sex</label></th>
+					<td>
+						<label v-for="v in CONST.SEX_VALUES" :class="{ 'has-error': errors.has('sex') }">
+							<input name="sex" type="radio" :value="v.value" v-model="formData.sex" v-validate="'required'" data-vv-as="Sex" :class="{ 'has-error': errors.has('sex') }" />
+							{{ v.label }}
+						</label>
+						<p class="error">{{ errors.first('sex') }}</p>
+					</td>
+				</tr>
+				<tr>
+					<th><label for="birthdate" class="required">Birthdate</label></th>
+					<td>
+						<input id="birthdate" name="birthdate" type="date" v-model="formData.birthdate" v-validate="'required'" data-vv-as="Birthdate" :class="{ 'has-error': errors.has('birthdate') }" />
+						<span v-if="formData.birthdate">( {{ age }}yo )</span>
+						<p class="error">{{ errors.first('birthdate') }}</p>
+					</td>
+				</tr>
+				<tr>
+					<th><label for="country" class="required">Country</label></th>
+					<td>
+						<select id="country" name="country" v-model="formData.country" v-validate="'required'" data-vv-as="Country" :class="{ 'has-error': errors.has('country') }">
+							<option></option>
+							<option v-for="v in CONST.COUNTRY_VALUES" :value="v.value">{{ v.label }}</option>
+						</select>
+						<p class="error">{{ errors.first('country') }}</p>
+					</td>
+				</tr>
+				<tr>
+					<th><label class="required">Favorites</label></th>
+					<td>
+						<label v-for="v in CONST.FAVORITE_VALUES" :class="{ 'has-error': errors.has('favorites') }">
+							<input name="favorites" type="checkbox" :value="v.value" v-model="formData.favorites" v-validate="'required'" data-vv-as="Favorites" :class="{ 'has-error': errors.has('favorites') }" />
+							{{ v.label }}
+						</label>
+						<p class="error">{{ errors.first('favorites') }}</p>
+					</td>
+				</tr>
+				<tr>
+					<th><label>Donation <input name="donation" type="checkbox" v-model="formData.donation" data-vv-as="Donation" :class="{ 'has-error': errors.has('favorites') }" /></label></th>
+					<td>
+						<input name="donationAmount" type="tel" v-model.number="formData.donationAmount" v-validate="this.formData.donation ? 'required|min_value:10|max_value:10000' : ''" data-vv-as="Amount of donation" :class="{ 'has-error': errors.has('donationAmount') }" />
+						<p class="error">{{ errors.first('donationAmount') }}</p>
+					</td>
+				</tr>
+				<tr>
+					<th><label>Comment</label></th>
+					<td>
+						<textarea name="comment" v-model.trim="formData.comment" v-validate="'max:100'" data-vv-as="Comment" :class="{ 'has-error': errors.has('comment') }"></textarea>
+						<p class="error">{{ errors.first('comment') }}</p>
+					</td>
+				</tr>
+			</table>
+			<p><label>Agree the term <input type="checkbox" v-model="formData.agree" v-validate="'required'" data-vv-as="Agree" :class="{ 'has-error': errors.has('agree') }" /></label></p>
+			
+			<input type="submit" value="Confirm" />
+		</form>
+	</div>
+
+	<div v-if="pageStatus === 'confirm'">
+		<h2>Confirm</h2>
+		<table>
+			<tr>
+				<th><label for="name" class="required">Account name</label></th>
+				<td>{{ formData.name }}</td>
+			</tr>
+			<tr>
+				<th><label for="password" class="required">Password</label></th>
+				<td>{{ formData.password }}</td>
+			</tr>
+			<tr>
+				<th><label class="required">Sex</label></th>
+				<td>{{ formData.sex | label(CONST.SEX_VALUES) }}</td>
+			</tr>
+			<tr>
+				<th><label for="birthdate" class="required">Birthdate</label></th>
+				<td>{{ formData.birthdate }} <span v-if="formData.birthdate">( {{ age }}yo )</span></td>
+			</tr>
+			<tr>
+				<th><label for="country" class="required">Country</label></th>
+				<td>{{ formData.country | label(CONST.COUNTRY_VALUES) }}</td>
+			</tr>
+			<tr>
+				<th><label class="required">Favorites</label></th>
+				<td>
+					<ul>
+						<li v-for="favorite in formData.favorites">{{ favorite | label(CONST.FAVORITE_VALUES) }}</li>
+					</ul>
+				</td>
+			</tr>
+			<tr>
+				<th><label>Donation <input name="donation" type="checkbox" v-model="formData.donation" data-vv-as="Donation" :class="{ 'has-error': errors.has('favorites') }" disabled /></label></th>
+				<td>{{ formData.donationAmount | num1000sep }}</td>
+			</tr>
+			<tr>
+				<th><label>Comment</label></th>
+				<td><p style="white-space: pre-line;">{{ formData.comment }}</p></td>
+			</tr>
+		</table>
+		<p><label>Agree the term <input type="checkbox" v-model="formData.agree" disabled /></label></p>
+		
+		<form>
+			<input type="button" value="Back" @click.prevent='goToInput' />
+			<input type="button" value="OK, Send" @click.prevent='goToDone' />
+		</form>
+	</div>
+
+	<div v-if="pageStatus === 'done'">
+		<h2>Done</h2>
+	</div>
+</div>
+
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vee-validate/2.1.4/vee-validate.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vee-validate/2.1.4/locale/ja.js"></script>
+<script>
+const CONSTANTS = {
+	SEX_VALUES: [
+		{ value: 'F', label: 'Female' },
+		{ value: 'M', label: 'Male' }
+	],
+	COUNTRY_VALUES: [
+		{ value: 'JP', label: 'Japan' },
+		{ value: 'US', label: 'United States' },
+		{ value: 'ZZ', label: 'Others' }
+	],
+	FAVORITE_VALUES: [
+		{ value: 'Sports', label: 'Sports' },
+		{ value: 'Traveling', label: 'Traveling' },
+		{ value: 'Cooking', label: 'Cooking' },
+		{ value: 'Music', label: 'Music' },
+		{ value: 'Movies', label: 'Movies' },
+		{ value: 'Reading', label: 'Reading' },
+		{ value: 'Others', label: 'Others' }
+	]
+};
+
+// Init Vue
+Vue.use(VeeValidate);
+
+Vue.filter('num1000sep', function (val) {
+	if (val === 0) return '0';
+	if (!val) return '';
+	return String(val).replace( /(\d)(?=(\d\d\d)+(?!\d))/g, '$1,');
+});
+
+Vue.filter('label', function (val, arrObj) {
+	for (var i = 0; i < arrObj.length; i++) {
+		var v = arrObj[i];
+		if (v.value == val) {
+			return v.label;
+		}
+	}
+	return '';
+});
+
+const app = new Vue({
+	el: '#app',
+	data: function () {
+		return {
+			CONST: CONSTANTS,
+			pageStatus: 'input',
+			formData: {
+				name: 'test',
+				password: 'password',
+				passwordConfirmation: 'password',
+				sex: 'M',
+				birthdate: '1987-06-05',
+				country: 'JP',
+				favorites: ['Sports', 'Movies'],
+				donation: true,
+				donationAmount: 10,
+				comment: 'test\r\ntest',
+				agree: true,
+			}
+		};
+	},
+	computed: {
+		age: function () {
+			if (!this.formData.birthdate) {
+				return null;
+			}
+
+			var birthdate = new Date(this.formData.birthdate);
+			var now = new Date();
+			
+			var nowdateNum = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
+			var birthdateNum = birthdate.getFullYear() * 10000 + (birthdate.getMonth() + 1) * 100 + birthdate.getDate();
+			return (Math.floor((nowdateNum - birthdateNum) / 10000));
+		}
+	},
+	methods: {
+		// page navigations
+		goToConfirm: function (e) {
+			this.$validator.validateAll().then(function (valid) {
+				if (!valid) {
+					return;
+				}
+
+				setPageStatus('confirm');
+			});
+		},
+		goToInput: function (e) {
+			setPageStatus('input');
+		},
+		goToDone: function (e) {
+			setPageStatus('done');
+		}
+	},
+	created: function () {
+		 this.$validator.localize('ja');
+	}
+});
+
+
+// Init page navigation
+function setPageStatus(status) {
+	window.location.hash = status;
+}
+
+function handleOnChangeHash(e) {
+	var hash = window.location.hash;
+	
+	var pageStatus;
+	if (!hash) {
+		pageStatus = 'input';
+	} else if (hash[0] === '#') {
+		pageStatus = hash.substr(1);
+	}
+	
+	app.$data.pageStatus = pageStatus;
+}
+
+window.addEventListener('load', handleOnChangeHash);
+window.addEventListener('hashchange', handleOnChangeHash);
+
+</script>
+</body>
+</html>

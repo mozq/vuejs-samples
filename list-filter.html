@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>List and filter sample | Vue.js samples</title>
+<style>
+table {
+	border-collapse: collapse;
+}
+
+th {
+	background-color: lightcyan;
+}
+
+th, td {
+	border: 1px solid black;
+	padding: 5px;
+}
+
+input {
+	background-color: ivory;
+}
+
+td.num {
+	text-align: right;
+}
+
+input[type=number] {
+	text-align: right;
+}
+
+#totalPrice {
+	border-bottom: double 5px red;
+}
+</style>
+</head>
+<body>
+<h1>List filter sample</h1>
+
+<div id="app">
+	<fieldset>
+		<legend>Item List Filter</legend>
+		<label>Item name: <input type="text" v-model="filter.name" /></label><br />
+		<label>Quantity: <input type="number" v-model.number="filter.quantityMin" /></label>
+		<label>to <input type="number" v-model.number="filter.quantityMax" /></label>
+	</fieldset>
+	
+	<h2>Item list</h2>
+	<table>
+		<tr>
+			<th>Item name</th>
+			<th>Unit price</th>
+			<th>Quantity</th>
+			<th>Price</th>
+		</tr>
+		<tr v-for="item in filteredItems">
+			<td>{{ item.name }}</td>
+			<td class="num">{{ item.unitPrice | num1000sep }}</td>
+			<td class="num"><input type="number" v-model.number="item.quantity" /></td>
+			<td class="num">{{ (item.unitPrice * item.quantity) | num1000sep }}</td>
+		</tr>
+	</table>
+	<p>Total price: <span id="totalPrice">{{ totalPrice | num1000sep }}</span></p>
+</div>
+
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<script>
+Vue.filter('num1000sep', function (val) {
+	if (val === 0) return '0';
+	if (!val) return '';
+	return String(val).replace( /(\d)(?=(\d\d\d)+(?!\d))/g, '$1,');
+});
+
+const app = new Vue({
+	el: '#app',
+	data: function () {
+		return {
+			filter: {
+				name: '',
+				quantityMin: '',
+				quantityMax: ''
+			},
+			items: [
+				{
+					name: 'Product ABC',
+					unitPrice: 1000,
+					quantity: 10
+				},
+				{
+					name: 'Product BCD',
+					unitPrice: 2000,
+					quantity: 20
+				},
+				{
+					name: 'Product CDE',
+					unitPrice: 3000,
+					quantity: 30
+				},
+				{
+					name: 'Product DEF',
+					unitPrice: 4000,
+					quantity: 40
+				},
+				{
+					name: 'Product EFG',
+					unitPrice: 5000,
+					quantity: 50
+				}
+			]
+		};
+	},
+	computed: {
+		filteredItems: function () {
+			var filteredItems = [];
+			for (var i = 0; i < this.items.length; i++) {
+				var item = this.items[i];
+				
+				// by name
+				if (this.filter.name !== '' && item.name.toLowerCase().indexOf(this.filter.name.toLowerCase()) === -1) {
+					continue;
+				}
+				
+				// by quantity
+				if (this.filter.quantityMin !== '' && item.quantity < this.filter.quantityMin) {
+					continue;
+				}
+				if (this.filter.quantityMax !== '' && item.quantity > this.filter.quantityMax) {
+					continue;
+				}
+				
+				filteredItems.push(item);
+			}
+			return filteredItems;
+		},
+		totalPrice: function () {
+			var totalPrice = 0;
+			for (var i = 0; i < this.filteredItems.length; i++) {
+				var item = this.items[i];
+				totalPrice += item.unitPrice * item.quantity;
+			}
+			return totalPrice;
+		}
+	}
+});
+</script>
+</body>
+</html>
